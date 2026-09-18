@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Ome Clone — Random Video Chat</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Landing -->
+  <div id="landing" class="page active">
+    <div class="bg-orbs">
+      <div class="orb orb1"></div>
+      <div class="orb orb2"></div>
+      <div class="orb orb3"></div>
+    </div>
+    <div class="landing-content">
+      <div class="logo">
+        <div class="logo-icon"><i class="fas fa-video"></i></div>
+        <h1>Ome<span>Clone</span></h1>
+      </div>
+      <p class="tagline">შეხვდი უცნობებს მთელ მსოფლიოში — რანდომ ვიდეო ჩატი</p>
+
+      <div class="mode-cards">
+        <button class="mode-card" id="btn1v1">
+          <div class="mode-icon"><i class="fas fa-user-friends"></i></div>
+          <h3>1-ზე-1</h3>
+          <p>რანდომ შეხვედრა ერთ ადამიანთან</p>
+        </button>
+        <button class="mode-card" id="btnGroup">
+          <div class="mode-icon"><i class="fas fa-users"></i></div>
+          <h3>ჯგუფი (4)</h3>
+          <p>რანდომ ჯგუფური ოთახი 4 ადამიანამდე</p>
+        </button>
+        <button class="mode-card" id="btnCreate">
+          <div class="mode-icon"><i class="fas fa-plus-circle"></i></div>
+          <h3>შექმენი ოთახი</h3>
+          <p>კოდით მოიწვიე მეგობრები (მაქს 4)</p>
+        </button>
+      </div>
+
+      <div class="join-code-box">
+        <input type="text" id="roomCodeInput" placeholder="ოთახის კოდი..." maxlength="8">
+        <button id="btnJoinCode"><i class="fas fa-sign-in-alt"></i> შესვლა</button>
+      </div>
+
+      <div class="features">
+        <span><i class="fas fa-shield-alt"></i> ანონიმური</span>
+        <span><i class="fas fa-bolt"></i> მყისიერი</span>
+        <span><i class="fas fa-video"></i> HD ვიდეო</span>
+        <span><i class="fas fa-comments"></i> ჩატი</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Waiting -->
+  <div id="waiting" class="page">
+    <div class="waiting-content">
+      <div class="spinner-large"></div>
+      <h2 id="waitingText">ვეძებთ პარტნიორს...</h2>
+      <p id="waitingSub">გთხოვთ დაელოდოთ</p>
+      <button id="btnCancelWait" class="btn-secondary">გაუქმება</button>
+    </div>
+  </div>
+
+  <!-- Chat Room -->
+  <div id="chatRoom" class="page">
+    <div class="room-header">
+      <div class="room-info">
+        <span id="roomTypeBadge">1v1</span>
+        <span id="roomIdDisplay" class="room-code"></span>
+      </div>
+      <div class="header-actions">
+        <button id="btnCopyCode" class="icon-btn" title="კოდის კოპირება"><i class="fas fa-copy"></i></button>
+        <button id="btnNext" class="icon-btn next" title="შემდეგი"><i class="fas fa-forward"></i></button>
+        <button id="btnLeave" class="icon-btn leave" title="გასვლა"><i class="fas fa-phone-slash"></i></button>
+      </div>
+    </div>
+
+    <div class="main-area">
+      <div class="videos-area" id="videosArea">
+        <!-- Videos injected dynamically -->
+        <div class="video-tile local" id="localTile">
+          <video id="localVideo" autoplay muted playsinline></video>
+          <div class="tile-label"><i class="fas fa-user-circle"></i> შენ</div>
+          <div class="tile-status" id="localStatus"></div>
+        </div>
+      </div>
+
+      <div class="chat-panel">
+        <div class="chat-header">
+          <i class="fas fa-comments"></i> ჩატი
+        </div>
+        <div id="messages" class="messages"></div>
+        <div class="chat-input-row">
+          <input type="text" id="chatInput" placeholder="წერე შეტყობინება..." maxlength="400">
+          <button id="btnSend"><i class="fas fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls-bar">
+      <button id="btnMic" class="control-btn active" title="მიკროფონი">
+        <i class="fas fa-microphone"></i>
+      </button>
+      <button id="btnCam" class="control-btn active" title="კამერა">
+        <i class="fas fa-video"></i>
+      </button>
+      <button id="btnNextBottom" class="control-btn next-big" title="შემდეგი">
+        <i class="fas fa-forward"></i>
+      </button>
+      <button id="btnLeaveBottom" class="control-btn leave-big" title="დასრულება">
+        <i class="fas fa-phone-slash"></i>
+      </button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
