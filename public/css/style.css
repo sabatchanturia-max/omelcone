@@ -371,21 +371,14 @@ body {
   position: absolute;
   top: 8px;
   right: 8px;
-  border: 0;
   font-size: 0.75rem;
   background: rgba(0,0,0,0.6);
   padding: 3px 8px;
   border-radius: 6px;
   color: var(--text-muted);
-  cursor: pointer;
 }
 .tile-status:empty {
   display: none;
-}
-.tile-status.needs-audio {
-  color: #fff;
-  background: var(--primary);
-  font-weight: 600;
 }
 
 /* Chat panel */
