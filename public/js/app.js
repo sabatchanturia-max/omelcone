@@ -119,14 +119,33 @@ function createRemoteTile(peerId) {
   tile.innerHTML = `
     <video autoplay playsinline></video>
     <div class="tile-label"><i class="fas fa-user"></i> უცნობი</div>
-    <div class="tile-status">უკავშირდება...</div>
+    <button class="tile-status" type="button">უკავშირდება...</button>
   `;
   videosArea.appendChild(tile);
   const video = tile.querySelector('video');
   video.volume = 1;
-  video.addEventListener('click', () => video.play().catch(() => {}));
+  const status = tile.querySelector('.tile-status');
+  const enableAudio = () => playRemoteVideo(video, status);
+  video.addEventListener('click', enableAudio);
+  status.addEventListener('click', enableAudio);
   updateGrid();
   return tile;
+}
+
+function playRemoteVideo(video, status) {
+  video.muted = false;
+  video.volume = 1;
+  video.play().then(() => {
+    if (status) {
+      status.textContent = '';
+      status.classList.remove('needs-audio');
+    }
+  }).catch(() => {
+    if (status) {
+      status.textContent = '🔊 ხმის ჩასართავად დააჭირე';
+      status.classList.add('needs-audio');
+    }
+  });
 }
 
 function removeRemoteTile(peerId) {
@@ -164,12 +183,9 @@ function createPeerConnection(peerId, isInitiator) {
       }
       video.muted = false;
       video.volume = 1;
-      video.play().catch(() => {
-        const status = tile.querySelector('.tile-status');
-        if (status) status.textContent = 'დააჭირე ვიდეოს ხმაზე';
-      });
       const status = tile.querySelector('.tile-status');
-      if (status) status.textContent = '';
+      playRemoteVideo(video, status);
+      e.track.onunmute = () => playRemoteVideo(video, status);
       console.log(`Remote ${peerId} track:`, e.track.kind, e.track.readyState, e.track.enabled);
     }
   };
@@ -343,11 +359,14 @@ document.getElementById('btnLeaveBottom').onclick = leaveEverything;
 
 document.addEventListener('click', () => {
   document.querySelectorAll('.video-tile.remote video').forEach(video => {
-    video.muted = false;
-    video.volume = 1;
-    video.play().catch(() => {});
+    playRemoteVideo(video, video.closest('.video-tile')?.querySelector('.tile-status'));
   });
 }, { passive: true });
+
+socket.on('connect_error', (error) => {
+  console.error('Socket connection error:', error.message);
+  waitingSub.textContent = 'სერვერთან დაკავშირება ვერ მოხერხდა. სცადე თავიდან.';
+});
 
 document.getElementById('btnCopyCode').onclick = () => {
   if (currentRoomId) {
