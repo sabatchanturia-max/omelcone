@@ -354,6 +354,9 @@ body {
   object-fit: cover;
   background: #0f172a;
 }
+.video-tile audio {
+  display: none;
+}
 .tile-label {
   position: absolute;
   bottom: 8px;

@@ -118,21 +118,30 @@ function createRemoteTile(peerId) {
   tile.id = `tile-${peerId}`;
   tile.innerHTML = `
     <video autoplay playsinline></video>
+    <audio autoplay></audio>
     <div class="tile-label"><i class="fas fa-user"></i> უცნობი</div>
     <div class="tile-status">უკავშირდება...</div>
   `;
   videosArea.appendChild(tile);
   const video = tile.querySelector('video');
+  const audio = tile.querySelector('audio');
+  video.muted = true;
   video.volume = 1;
   video.addEventListener('click', () => playRemoteVideo(video));
+  audio.volume = 1;
   updateGrid();
   return tile;
 }
 
 function playRemoteVideo(video) {
-  video.muted = false;
   video.volume = 1;
   return video.play().catch(error => console.warn('Remote audio autoplay blocked:', error.message));
+}
+
+function playRemoteAudio(audio) {
+  audio.muted = false;
+  audio.volume = 1;
+  return audio.play().catch(error => console.warn('Remote audio autoplay blocked:', error.message));
 }
 
 function removeRemoteTile(peerId) {
@@ -161,19 +170,24 @@ function createPeerConnection(peerId, isInitiator) {
     const tile = document.getElementById(`tile-${peerId}`);
     if (tile) {
       const video = tile.querySelector('video');
+      const audio = tile.querySelector('audio');
       if (e.streams[0]) {
         video.srcObject = e.streams[0];
+        audio.srcObject = e.streams[0];
       } else {
         const stream = video.srcObject || new MediaStream();
         stream.addTrack(e.track);
         video.srcObject = stream;
+        audio.srcObject = stream;
       }
-      video.muted = false;
-      video.volume = 1;
       const status = tile.querySelector('.tile-status');
       if (status) status.textContent = '';
       playRemoteVideo(video);
-      e.track.onunmute = () => playRemoteVideo(video);
+      playRemoteAudio(audio);
+      e.track.onunmute = () => {
+        playRemoteVideo(video);
+        playRemoteAudio(audio);
+      };
       console.log(`Remote ${peerId} track:`, e.track.kind, e.track.readyState, e.track.enabled);
     }
   };
@@ -348,6 +362,9 @@ document.getElementById('btnLeaveBottom').onclick = leaveEverything;
 document.addEventListener('click', () => {
   document.querySelectorAll('.video-tile.remote video').forEach(video => {
     playRemoteVideo(video);
+  });
+  document.querySelectorAll('.video-tile.remote audio').forEach(audio => {
+    playRemoteAudio(audio);
   });
 }, { passive: true });
 
