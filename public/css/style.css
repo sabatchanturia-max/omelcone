@@ -364,16 +364,10 @@ body {
 .watch-controls {
   display: flex;
   gap: 5px;
-  align-items: center;
-  flex-wrap: wrap;
 }
 .watch-controls .icon-btn {
   width: 36px;
   height: 36px;
-}
-.watch-volume {
-  width: 74px;
-  accent-color: var(--primary);
 }
 .youtube-player {
   width: 100%;
@@ -389,16 +383,10 @@ body {
   height: 100%;
   border: 0;
 }
-.watch-seek {
-  display: block;
-  width: 100%;
-  margin-top: 6px;
-  accent-color: var(--primary);
-}
 
 .main-area:has(.watch-stage.active) {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(180px, 230px) 320px;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 230px) 240px;
   gap: 0;
 }
 .main-area:has(.watch-stage.active) .watch-stage {
@@ -497,7 +485,7 @@ body {
 
 /* Chat panel */
 .chat-panel {
-  width: 320px;
+  width: 240px;
   background: rgba(15, 23, 42, 0.72);
   backdrop-filter: blur(12px);
   border-left: 1px solid var(--border);
@@ -698,9 +686,6 @@ body {
     grid-template-columns: 1fr;
     grid-template-rows: minmax(0, 1fr) minmax(120px, 34vh);
   }
-  .main-area:has(.watch-stage.active) .watch-controls {
-    justify-content: center;
-  }
   .main-area:has(.watch-stage.active) .watch-stage {
     grid-column: 1;
     grid-row: 1;
@@ -736,25 +721,5 @@ body {
   .youtube-player { aspect-ratio: 16 / 9; }
   .main-area:has(.watch-stage.active) {
     grid-template-rows: minmax(0, 1fr) minmax(110px, 31vh);
-  }
-}
-
-@media (max-width: 900px) and (orientation: landscape) {
-  .main-area:has(.watch-stage.active) {
-    grid-template-columns: minmax(0, 1fr) 112px;
-    grid-template-rows: 1fr;
-  }
-  .main-area:has(.watch-stage.active) .watch-stage {
-    grid-column: 1;
-    grid-row: 1;
-    border-right: 1px solid var(--border);
-    border-bottom: 0;
-  }
-  .main-area:has(.watch-stage.active) .videos-area {
-    grid-column: 2;
-    grid-row: 1;
-    grid-template-columns: 1fr;
-    grid-template-rows: none;
-    grid-auto-rows: minmax(0, 1fr);
   }
 }
