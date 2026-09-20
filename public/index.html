@@ -93,12 +93,17 @@
             <button id="btnLoadYoutube" class="watch-action"><i class="fas fa-play"></i> ჩატვირთვა</button>
           </div>
           <div class="watch-controls">
+            <button id="btnWatchBack" class="icon-btn" title="10 წამით უკან"><i class="fas fa-rotate-left"></i></button>
             <button id="btnWatchPlay" class="icon-btn" title="დაკვრა"><i class="fas fa-play"></i></button>
             <button id="btnWatchPause" class="icon-btn" title="პაუზა"><i class="fas fa-pause"></i></button>
+            <button id="btnWatchForward" class="icon-btn" title="10 წამით წინ"><i class="fas fa-rotate-right"></i></button>
             <button id="btnWatchSync" class="icon-btn" title="სინქრონიზაცია"><i class="fas fa-arrows-rotate"></i></button>
-          </div>
+            <button id="btnWatchMute" class="icon-btn" title="ხმის დადუმება"><i class="fas fa-volume-high"></i></button>
+            <input id="watchVolume" class="watch-volume" type="range" min="0" max="100" value="100" aria-label="ხმის დონე">
+            <button id="btnWatchFullscreen" class="icon-btn" title="სრულ ეკრანზე"><i class="fas fa-expand"></i></button>
           </div>
         <div id="youtubePlayer" class="youtube-player"></div>
+          <input id="watchSeek" class="watch-seek" type="range" min="0" max="100" value="0" step="0.1" aria-label="ვიდეოს პოზიცია">
       </section>
       <div class="videos-area" id="videosArea">
         <!-- Videos injected dynamically -->

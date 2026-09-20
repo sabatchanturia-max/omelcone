@@ -32,6 +32,7 @@ let camEnabled = true;
 let cameraFacingMode = 'user';
 const pendingCandidates = new Map();
 let youtubePlayer = null;
+let youtubeProgressTimer = null;
 let youtubeReadyResolve;
 const youtubeReady = new Promise(resolve => { youtubeReadyResolve = resolve; });
 
@@ -59,8 +60,13 @@ async function ensureYoutubePlayer(videoId) {
   if (!youtubePlayer) {
     youtubePlayer = new YT.Player('youtubePlayer', {
       videoId,
-      playerVars: { playsinline: 1, rel: 0, controls: 1 },
-      events: { onReady: () => youtubePlayer.playVideo() }
+      playerVars: { playsinline: 1, rel: 0, controls: 0, disablekb: 1 },
+      events: {
+        onReady: () => {
+          youtubePlayer.playVideo();
+          startYoutubeProgress();
+        }
+      }
     });
   } else {
     youtubePlayer.loadVideoById(videoId);
@@ -81,8 +87,26 @@ function stopYoutubePlayback() {
     console.warn('YouTube cleanup failed:', error.message);
   }
   youtubePlayer = null;
+  if (youtubeProgressTimer) {
+    clearInterval(youtubeProgressTimer);
+    youtubeProgressTimer = null;
+  }
   if (youtubePlayerEl) youtubePlayerEl.innerHTML = '';
   if (youtubeUrlInput) youtubeUrlInput.value = '';
+}
+
+function startYoutubeProgress() {
+  if (youtubeProgressTimer) return;
+  youtubeProgressTimer = setInterval(() => {
+    if (!youtubePlayer || typeof youtubePlayer.getDuration !== 'function') return;
+    const duration = youtubePlayer.getDuration();
+    if (duration > 0) {
+      const seek = document.getElementById('watchSeek');
+      if (seek && document.activeElement !== seek) {
+        seek.value = (youtubePlayer.getCurrentTime() / duration) * 100;
+      }
+    }
+  }, 500);
 }
 
 function sendWatchControl(action, extra = {}) {
@@ -476,6 +500,43 @@ document.getElementById('btnWatchSync').onclick = () => {
   if (!youtubePlayer) return;
   sendWatchControl('sync', { time: youtubePlayer.getCurrentTime(), playing: true });
 };
+document.getElementById('btnWatchBack').onclick = () => seekYoutube(-10);
+document.getElementById('btnWatchForward').onclick = () => seekYoutube(10);
+document.getElementById('watchVolume').oninput = (event) => {
+  if (!youtubePlayer) return;
+  youtubePlayer.setVolume(Number(event.target.value));
+  youtubePlayer.unMute();
+  document.getElementById('btnWatchMute').innerHTML = '<i class="fas fa-volume-high"></i>';
+};
+document.getElementById('btnWatchMute').onclick = () => {
+  if (!youtubePlayer) return;
+  if (youtubePlayer.isMuted()) {
+    youtubePlayer.unMute();
+    youtubePlayer.setVolume(Number(document.getElementById('watchVolume').value));
+    document.getElementById('btnWatchMute').innerHTML = '<i class="fas fa-volume-high"></i>';
+  } else {
+    youtubePlayer.mute();
+    document.getElementById('btnWatchMute').innerHTML = '<i class="fas fa-volume-xmark"></i>';
+  }
+};
+document.getElementById('btnWatchFullscreen').onclick = () => {
+  youtubePlayerEl?.requestFullscreen?.();
+};
+document.getElementById('watchSeek').oninput = (event) => {
+  if (!youtubePlayer) return;
+  const duration = youtubePlayer.getDuration();
+  if (!duration) return;
+  const time = (Number(event.target.value) / 100) * duration;
+  youtubePlayer.seekTo(time, true);
+  sendWatchControl('sync', { time, playing: true });
+};
+
+function seekYoutube(seconds) {
+  if (!youtubePlayer) return;
+  const time = Math.max(0, youtubePlayer.getCurrentTime() + seconds);
+  youtubePlayer.seekTo(time, true);
+  sendWatchControl('sync', { time, playing: true });
+}
 
 function setChatOpen(isOpen) {
   if (!chatPanel) return;
