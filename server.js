@@ -86,7 +86,7 @@ const socketInfo = new Map();           // socketId -> { id, roomId? }
 
 function createRoom(type, max) {
   const id = uuidv4().slice(0, 8);
-  rooms.set(id, { type, users: new Set(), max });
+  rooms.set(id, { type, users: new Set(), max, media: { videoId: null, time: 0, playing: false } });
   return id;
 }
 
@@ -215,6 +215,18 @@ io.on('connection', (socket) => {
     socket.emit('room-created', { roomId, type: 'group' });
   });
 
+  socket.on('create-watch-room', () => {
+    leaveRoom(socket.id);
+    waiting1v1.delete(socket.id);
+    waitingGroup.delete(socket.id);
+
+    const roomId = createRoom('watch', 8);
+    const room = rooms.get(roomId);
+    room.users.add(socket.id);
+    socketToRoom.set(socket.id, roomId);
+    socket.emit('room-created', { roomId, type: 'watch' });
+  });
+
   // Join existing room by code
   socket.on('join-room', ({ roomId }) => {
     leaveRoom(socket.id);
@@ -241,7 +253,8 @@ io.on('connection', (socket) => {
       roomId,
       peers: existing,
       type: room.type,
-      isInitiator: true
+      isInitiator: true,
+      media: room.media
     });
 
     // Tell existing about new peer
@@ -266,6 +279,20 @@ io.on('connection', (socket) => {
       if (peerId !== socket.id) {
         io.to(peerId).emit('chat', { from: socket.id, message });
       }
+    }
+  });
+
+  socket.on('watch-control', ({ action, videoId, time, playing }) => {
+    const roomId = socketToRoom.get(socket.id);
+    const room = roomId && rooms.get(roomId);
+    if (!room || room.type !== 'watch' || room.users.size === 0) return;
+
+    if (typeof videoId === 'string') room.media.videoId = videoId;
+    if (typeof time === 'number') room.media.time = Math.max(0, time);
+    if (typeof playing === 'boolean') room.media.playing = playing;
+
+    for (const peerId of room.users) {
+      if (peerId !== socket.id) io.to(peerId).emit('watch-control', { action, ...room.media });
     }
   });
 

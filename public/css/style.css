@@ -321,6 +321,63 @@ body {
   min-height: 0;
 }
 
+.watch-stage {
+  display: none;
+  flex: 0 0 320px;
+  padding: 10px;
+  background: #080c14;
+  border-bottom: 1px solid var(--border);
+}
+.watch-stage.active {
+  display: block;
+}
+.watch-toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.watch-url-row {
+  display: flex;
+  flex: 1;
+  gap: 6px;
+  min-width: 0;
+}
+.watch-url-row input {
+  min-width: 0;
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 10px;
+  color: var(--text);
+  outline: none;
+}
+.watch-action {
+  border: 0;
+  border-radius: 8px;
+  background: var(--primary);
+  color: white;
+  padding: 0 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.watch-controls {
+  display: flex;
+  gap: 5px;
+}
+.watch-controls .icon-btn {
+  width: 36px;
+  height: 36px;
+}
+.youtube-player {
+  width: 100%;
+  height: 250px;
+  background: #000;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
 .videos-area {
   flex: 1;
   display: grid;
@@ -576,6 +633,17 @@ body {
   .videos-area.grid-4 {
     grid-template-columns: 1fr 1fr;
   }
+  .watch-stage {
+    flex-basis: 230px;
+    padding: 7px;
+  }
+  .watch-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .youtube-player {
+    height: 170px;
+  }
   .mode-cards {
     grid-template-columns: 1fr;
   }
@@ -587,4 +655,7 @@ body {
   .control-btn { width: 46px; height: 46px; font-size: 1rem; }
   .control-btn.next-big { width: 52px; height: 52px; }
   .room-header { padding: 0.6rem 0.8rem; }
+  .watch-url-row { flex-direction: column; }
+  .watch-action { min-height: 38px; }
+  .youtube-player { height: 145px; }
 }

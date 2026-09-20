@@ -17,6 +17,9 @@ const roomIdDisplay = document.getElementById('roomIdDisplay');
 const chatPanel = document.querySelector('.chat-panel');
 const btnChatToggle = document.getElementById('btnChatToggle');
 const btnChatClose = document.getElementById('btnChatClose');
+const watchStage = document.getElementById('watchStage');
+const youtubeUrlInput = document.getElementById('youtubeUrlInput');
+const youtubePlayerEl = document.getElementById('youtubePlayer');
 
 // State
 let localStream = null;
@@ -28,11 +31,65 @@ let micEnabled = true;
 let camEnabled = true;
 let cameraFacingMode = 'user';
 const pendingCandidates = new Map();
+let youtubePlayer = null;
+let youtubeReadyResolve;
+const youtubeReady = new Promise(resolve => { youtubeReadyResolve = resolve; });
+
+window.onYouTubeIframeAPIReady = () => youtubeReadyResolve();
 
 // ===== Helpers =====
 function showPage(page) {
   [landing, waitingPage, chatRoom].forEach(p => p.classList.remove('active'));
   page.classList.add('active');
+}
+
+function extractYoutubeId(value) {
+  try {
+    const url = new URL(value);
+    if (url.hostname === 'youtu.be') return url.pathname.slice(1).split('/')[0];
+    if (url.hostname.includes('youtube.com')) return url.searchParams.get('v') || url.pathname.split('/').pop();
+  } catch (error) {
+    return null;
+  }
+  return null;
+}
+
+async function ensureYoutubePlayer(videoId) {
+  await youtubeReady;
+  if (!youtubePlayer) {
+    youtubePlayer = new YT.Player('youtubePlayer', {
+      videoId,
+      playerVars: { playsinline: 1, rel: 0, controls: 1 },
+      events: { onReady: () => youtubePlayer.playVideo() }
+    });
+  } else {
+    youtubePlayer.loadVideoById(videoId);
+  }
+}
+
+function setWatchMode(enabled) {
+  if (watchStage) watchStage.classList.toggle('active', enabled);
+  if (enabled) roomTypeBadge.textContent = 'Watch Together';
+}
+
+function sendWatchControl(action, extra = {}) {
+  if (currentMode !== 'watch') return;
+  socket.emit('watch-control', { action, ...extra });
+}
+
+async function loadYoutubeVideo(videoId, broadcast = true) {
+  if (!videoId) return;
+  await ensureYoutubePlayer(videoId);
+  if (broadcast) sendWatchControl('load', { videoId, time: 0, playing: true });
+}
+
+function applyWatchState(state) {
+  if (!state?.videoId) return;
+  ensureYoutubePlayer(state.videoId).then(() => {
+    if (typeof state.time === 'number') youtubePlayer.seekTo(state.time, true);
+    if (state.playing) youtubePlayer.playVideo();
+    else youtubePlayer.pauseVideo();
+  });
 }
 
 function addSystemMessage(text) {
@@ -340,6 +397,17 @@ document.getElementById('btnJoinCode').onclick = async () => {
   }
 };
 
+document.getElementById('btnWatch').onclick = async () => {
+  try {
+    await getLocalStream();
+    await loadIceServers();
+    currentMode = 'watch';
+    socket.emit('create-watch-room');
+  } catch (err) {
+    alert('კამერისა და მიკროფონის ჩართვა ვერ მოხერხდა.');
+  }
+};
+
 document.getElementById('btnCancelWait').onclick = () => {
   socket.emit('leave');
   showPage(landing);
@@ -362,6 +430,29 @@ document.getElementById('btnNext').onclick = doNext;
 document.getElementById('btnNextBottom').onclick = doNext;
 document.getElementById('btnLeave').onclick = leaveEverything;
 document.getElementById('btnLeaveBottom').onclick = leaveEverything;
+
+document.getElementById('btnLoadYoutube').onclick = () => {
+  const videoId = extractYoutubeId(youtubeUrlInput.value.trim());
+  if (!videoId) {
+    addSystemMessage('ჩასვი სწორი YouTube URL.');
+    return;
+  }
+  loadYoutubeVideo(videoId);
+};
+document.getElementById('btnWatchPlay').onclick = () => {
+  if (!youtubePlayer) return;
+  youtubePlayer.playVideo();
+  sendWatchControl('play', { time: youtubePlayer.getCurrentTime(), playing: true });
+};
+document.getElementById('btnWatchPause').onclick = () => {
+  if (!youtubePlayer) return;
+  youtubePlayer.pauseVideo();
+  sendWatchControl('pause', { time: youtubePlayer.getCurrentTime(), playing: false });
+};
+document.getElementById('btnWatchSync').onclick = () => {
+  if (!youtubePlayer) return;
+  sendWatchControl('sync', { time: youtubePlayer.getCurrentTime(), playing: true });
+};
 
 function setChatOpen(isOpen) {
   if (!chatPanel) return;
@@ -469,10 +560,11 @@ socket.on('waiting', ({ mode, count }) => {
   }
 });
 
-socket.on('matched', async ({ roomId, peers: peerList, type }) => {
+socket.on('matched', async ({ roomId, peers: peerList, type, media }) => {
   currentRoomId = roomId;
   currentMode = type;
-  roomTypeBadge.textContent = type === '1v1' ? '1v1' : 'ჯგუფი';
+  setWatchMode(type === 'watch');
+  roomTypeBadge.textContent = type === 'watch' ? 'Watch Together' : (type === '1v1' ? '1v1' : 'ჯგუფი');
   roomIdDisplay.textContent = roomId;
   showPage(chatRoom);
   messagesEl.innerHTML = '';
@@ -488,17 +580,32 @@ socket.on('matched', async ({ roomId, peers: peerList, type }) => {
     }
   }
   updateGrid();
+  if (type === 'watch') applyWatchState(media);
 });
 
-socket.on('room-created', ({ roomId }) => {
+socket.on('room-created', ({ roomId, type }) => {
   currentRoomId = roomId;
-  currentMode = 'group';
-  roomTypeBadge.textContent = 'ჯგუფი';
+  currentMode = type || 'group';
+  setWatchMode(currentMode === 'watch');
+  roomTypeBadge.textContent = currentMode === 'watch' ? 'Watch Together' : 'ჯგუფი';
   roomIdDisplay.textContent = roomId;
   showPage(chatRoom);
   messagesEl.innerHTML = '';
   addSystemMessage(`ოთახი შეიქმნა! კოდი: ${roomId} — გაუზიარე მეგობრებს`);
   updateGrid();
+});
+
+socket.on('watch-control', ({ action, videoId, time, playing }) => {
+  if (currentMode !== 'watch') return;
+  if (action === 'load') {
+    youtubeUrlInput.value = `https://www.youtube.com/watch?v=${videoId}`;
+    applyWatchState({ videoId, time, playing });
+    return;
+  }
+  if (!youtubePlayer) return;
+  if (typeof time === 'number') youtubePlayer.seekTo(time, true);
+  if (playing || action === 'play' || action === 'sync') youtubePlayer.playVideo();
+  if (action === 'pause') youtubePlayer.pauseVideo();
 });
 
 socket.on('peer-joined', ({ peerId }) => {
