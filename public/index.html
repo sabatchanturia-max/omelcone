@@ -85,7 +85,8 @@
       </div>
     </div>
 
-    <section class="watch-stage" id="watchStage">
+    <div class="main-area">
+      <section class="watch-stage" id="watchStage">
         <div class="watch-toolbar">
           <div class="watch-url-row">
             <input id="youtubeUrlInput" type="url" placeholder="YouTube ვიდეოს URL...">
@@ -96,11 +97,9 @@
             <button id="btnWatchPause" class="icon-btn" title="პაუზა"><i class="fas fa-pause"></i></button>
             <button id="btnWatchSync" class="icon-btn" title="სინქრონიზაცია"><i class="fas fa-arrows-rotate"></i></button>
           </div>
-        </div>
+          </div>
         <div id="youtubePlayer" class="youtube-player"></div>
-    </section>
-
-    <div class="main-area">
+      </section>
       <div class="videos-area" id="videosArea">
         <!-- Videos injected dynamically -->
         <div class="video-tile local" id="localTile">

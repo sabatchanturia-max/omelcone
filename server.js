@@ -80,6 +80,7 @@ app.get('/ice-servers', async (req, res) => {
 // ===== State =====
 const waiting1v1 = new Set();           // socketIds waiting for 1v1
 const waitingGroup = new Set();         // socketIds waiting for group (4)
+const waitingWatch = new Set();         // socketIds waiting for Watch Together
 const rooms = new Map();                // roomId -> { type: '1v1'|'group', users: Set, max: number }
 const socketToRoom = new Map();         // socketId -> roomId
 const socketInfo = new Map();           // socketId -> { id, roomId? }
@@ -176,6 +177,26 @@ function tryMatchGroup(socket) {
   return false;
 }
 
+function tryMatchWatch(socket) {
+  if (waitingWatch.size > 0) {
+    const peerId = waitingWatch.values().next().value;
+    waitingWatch.delete(peerId);
+
+    const roomId = createRoom('watch', 2);
+    const room = rooms.get(roomId);
+    room.users.add(socket.id);
+    room.users.add(peerId);
+    socketToRoom.set(socket.id, roomId);
+    socketToRoom.set(peerId, roomId);
+
+    io.to(socket.id).emit('matched', { roomId, peers: [peerId], type: 'watch', media: room.media });
+    io.to(peerId).emit('matched', { roomId, peers: [socket.id], type: 'watch', media: room.media });
+    return true;
+  }
+  waitingWatch.add(socket.id);
+  return false;
+}
+
 io.on('connection', (socket) => {
   console.log('Connected:', socket.id);
   socketInfo.set(socket.id, { id: socket.id });
@@ -185,6 +206,7 @@ io.on('connection', (socket) => {
     leaveRoom(socket.id);
     waiting1v1.delete(socket.id);
     waitingGroup.delete(socket.id);
+    waitingWatch.delete(socket.id);
 
     if (mode === '1v1') {
       const matched = tryMatch1v1(socket);
@@ -198,6 +220,9 @@ io.on('connection', (socket) => {
       } else {
         // already emitted matched
       }
+    } else if (mode === 'watch') {
+      const matched = tryMatchWatch(socket);
+      if (!matched) socket.emit('waiting', { mode: 'watch' });
     }
   });
 
@@ -206,6 +231,7 @@ io.on('connection', (socket) => {
     leaveRoom(socket.id);
     waiting1v1.delete(socket.id);
     waitingGroup.delete(socket.id);
+    waitingWatch.delete(socket.id);
 
     const roomId = createRoom('group', 4);
     const room = rooms.get(roomId);
@@ -232,6 +258,7 @@ io.on('connection', (socket) => {
     leaveRoom(socket.id);
     waiting1v1.delete(socket.id);
     waitingGroup.delete(socket.id);
+    waitingWatch.delete(socket.id);
 
     const room = rooms.get(roomId);
     if (!room) {
@@ -301,6 +328,7 @@ io.on('connection', (socket) => {
     leaveRoom(socket.id);
     waiting1v1.delete(socket.id);
     waitingGroup.delete(socket.id);
+    waitingWatch.delete(socket.id);
     socket.emit('left');
   });
 
@@ -309,6 +337,7 @@ io.on('connection', (socket) => {
     leaveRoom(socket.id);
     waiting1v1.delete(socket.id);
     waitingGroup.delete(socket.id);
+    waitingWatch.delete(socket.id);
     // Client will call join-queue again
   });
 
@@ -317,6 +346,7 @@ io.on('connection', (socket) => {
     leaveRoom(socket.id);
     waiting1v1.delete(socket.id);
     waitingGroup.delete(socket.id);
+    waitingWatch.delete(socket.id);
     socketInfo.delete(socket.id);
   });
 });

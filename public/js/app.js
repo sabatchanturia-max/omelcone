@@ -402,7 +402,10 @@ document.getElementById('btnWatch').onclick = async () => {
     await getLocalStream();
     await loadIceServers();
     currentMode = 'watch';
-    socket.emit('create-watch-room');
+    showPage(waitingPage);
+    waitingText.textContent = 'ვეძებთ Watch Together პარტნიორს...';
+    waitingSub.textContent = 'შემთხვევითი 1-ზე-1 ოთახი';
+    socket.emit('join-queue', { mode: 'watch' });
   } catch (err) {
     alert('კამერისა და მიკროფონის ჩართვა ვერ მოხერხდა.');
   }
