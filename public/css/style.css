@@ -327,9 +327,10 @@ body {
   gap: 8px;
   padding: 8px;
   background: #080c14;
-  overflow: auto;
-  align-content: center;
+  overflow: hidden;
+  align-content: stretch;
   justify-content: center;
+  grid-auto-rows: minmax(0, 1fr);
 }
 
 /* Dynamic grid based on participant count */
@@ -343,8 +344,8 @@ body {
   background: #0f172a;
   border-radius: 12px;
   overflow: hidden;
-  aspect-ratio: 16/9;
-  min-height: 140px;
+  aspect-ratio: auto;
+  min-height: 0;
   border: 2px solid transparent;
   transition: border-color 0.2s;
 }

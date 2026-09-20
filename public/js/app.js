@@ -26,6 +26,7 @@ let currentMode = null; // '1v1' | 'group'
 let iceServers = [{ urls: 'stun:stun.l.google.com:19302' }];
 let micEnabled = true;
 let camEnabled = true;
+let cameraFacingMode = 'user';
 const pendingCandidates = new Map();
 
 // ===== Helpers =====
@@ -76,7 +77,7 @@ async function getLocalStream() {
   // ჯერ ვცდილობთ კამერა + მიკროფონი
   try {
     localStream = await navigator.mediaDevices.getUserMedia({
-      video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
+      video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: cameraFacingMode },
       audio: audioConstraints
     });
     camEnabled = true;
@@ -415,6 +416,36 @@ document.getElementById('btnCam').onclick = () => {
   btn.classList.toggle('active', camEnabled);
   btn.classList.toggle('muted', !camEnabled);
   btn.innerHTML = camEnabled ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
+};
+
+document.getElementById('btnFlipCam').onclick = async () => {
+  if (!localStream || !localStream.getVideoTracks().length) return;
+
+  const previousTrack = localStream.getVideoTracks()[0];
+  const nextFacingMode = cameraFacingMode === 'user' ? 'environment' : 'user';
+  const wasEnabled = previousTrack.enabled;
+
+  try {
+    const replacementStream = await navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: nextFacingMode },
+      audio: false
+    });
+    const replacementTrack = replacementStream.getVideoTracks()[0];
+    replacementTrack.enabled = wasEnabled;
+
+    peers.forEach(({ pc }) => {
+      const sender = pc.getSenders().find(item => item.track?.kind === 'video');
+      if (sender) sender.replaceTrack(replacementTrack).catch(error => console.warn('Camera switch failed:', error));
+    });
+
+    localStream.removeTrack(previousTrack);
+    localStream.addTrack(replacementTrack);
+    previousTrack.stop();
+    localVideo.srcObject = localStream;
+    cameraFacingMode = nextFacingMode;
+  } catch (error) {
+    console.error('Camera flip failed:', error);
+  }
 };
 
 // Chat
