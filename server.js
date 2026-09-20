@@ -33,8 +33,38 @@ if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
   }
 }
 
+const xirsysPath = process.env.XIRSYS_PATH || 'https://global.xirsys.net';
+const xirsysIdent = process.env.XIRSYS_IDENT;
+const xirsysSecret = process.env.XIRSYS_SECRET;
+const xirsysChannel = process.env.XIRSYS_CHANNEL;
+
+async function getXirsysIceServers() {
+  if (!xirsysIdent || !xirsysSecret || !xirsysChannel) return null;
+
+  const response = await fetch(`${xirsysPath}/_turn/${xirsysChannel}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Basic ${Buffer.from(`${xirsysIdent}:${xirsysSecret}`).toString('base64')}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ format: 'urls' })
+  });
+
+  if (!response.ok) throw new Error(`Xirsys returned HTTP ${response.status}`);
+  const payload = await response.json();
+  return payload.v?.iceServers || payload.iceServers || null;
+}
+
 app.get('/ice-servers', async (req, res) => {
   const stun = [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }];
+  if (xirsysIdent && xirsysSecret && xirsysChannel) {
+    try {
+      const iceServers = await getXirsysIceServers();
+      if (iceServers) return res.json(iceServers);
+    } catch (err) {
+      console.error('Xirsys error:', err.message);
+    }
+  }
   if (twilioClient) {
     try {
       const token = await twilioClient.tokens.create({ ttl: 3600 });
