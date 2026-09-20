@@ -477,19 +477,19 @@ body {
 .controls-bar {
   display: flex;
   justify-content: center;
-  gap: 0.55rem;
-  padding: 0.55rem 0.5rem;
-  background: transparent;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+  gap: 1rem;
+  padding: 0.9rem;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
 .control-btn {
-  width: 42px; height: 42px;
+  width: 52px; height: 52px;
   border-radius: 50%;
   border: none;
   background: var(--card);
   color: var(--text);
-  font-size: 0.95rem;
+  font-size: 1.15rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -512,7 +512,7 @@ body {
   background: linear-gradient(135deg, var(--primary), #8b5cf6);
   border: none;
   color: white;
-  width: 46px; height: 46px;
+  width: 58px; height: 58px;
 }
 .control-btn.leave-big {
   background: rgba(239,68,68,0.15);
@@ -528,20 +528,27 @@ body {
   .chat-panel {
     position: absolute;
     z-index: 10;
-    top: 0;
-    right: 0;
-    width: min(88vw, 360px);
-    height: 100%;
-    max-height: none;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    width: min(92vw, 390px);
+    height: min(68vh, 520px);
+    max-height: 68vh;
     border-left: none;
     border: 1px solid var(--border);
-    border-radius: 18px 0 0 18px;
-    transform: translateX(102%);
+    border-radius: 18px;
+    transform: translate(-50%, -46%) scale(0.96);
     transition: transform 0.25s ease;
-    box-shadow: -18px 0 40px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
   }
   .chat-panel.open {
-    transform: translateX(0);
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
   }
   .chat-panel .chat-header {
     justify-content: space-between;
@@ -557,10 +564,6 @@ body {
     background: transparent;
     color: var(--text);
     cursor: pointer;
-  }
-  .controls-bar {
-    order: -1;
-    padding: 0.4rem;
   }
   .messages {
     padding: 0.45rem 0.65rem;
@@ -580,7 +583,7 @@ body {
 
 @media (max-width: 500px) {
   .controls-bar { gap: 0.45rem; }
-  .control-btn { width: 40px; height: 40px; font-size: 0.9rem; }
-  .control-btn.next-big { width: 44px; height: 44px; }
+  .control-btn { width: 46px; height: 46px; font-size: 1rem; }
+  .control-btn.next-big { width: 52px; height: 52px; }
   .room-header { padding: 0.6rem 0.8rem; }
 }
