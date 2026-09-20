@@ -72,6 +72,19 @@ function setWatchMode(enabled) {
   if (enabled) roomTypeBadge.textContent = 'Watch Together';
 }
 
+function stopYoutubePlayback() {
+  if (!youtubePlayer) return;
+  try {
+    youtubePlayer.stopVideo();
+    youtubePlayer.destroy();
+  } catch (error) {
+    console.warn('YouTube cleanup failed:', error.message);
+  }
+  youtubePlayer = null;
+  if (youtubePlayerEl) youtubePlayerEl.innerHTML = '';
+  if (youtubeUrlInput) youtubeUrlInput.value = '';
+}
+
 function sendWatchControl(action, extra = {}) {
   if (currentMode !== 'watch') return;
   socket.emit('watch-control', { action, ...extra });
@@ -333,6 +346,8 @@ function cleanupPeers() {
 
 function leaveEverything() {
   cleanupPeers();
+  stopYoutubePlayback();
+  setWatchMode(false);
   currentRoomId = null;
   currentMode = null;
   messagesEl.innerHTML = '';
@@ -419,11 +434,16 @@ document.getElementById('btnCancelWait').onclick = () => {
 function doNext() {
   cleanupPeers();
   messagesEl.innerHTML = '';
-  if (currentMode === '1v1') {
+  if (currentMode === '1v1' || currentMode === 'watch') {
+    const nextMode = currentMode;
+    stopYoutubePlayback();
     showPage(waitingPage);
-    waitingText.textContent = 'ვეძებთ ახალ პარტნიორს...';
+    waitingText.textContent = nextMode === 'watch'
+      ? 'ვეძებთ ახალ Watch Together პარტნიორს...'
+      : 'ვეძებთ ახალ პარტნიორს...';
+    waitingSub.textContent = nextMode === 'watch' ? 'შემთხვევითი 1-ზე-1 ოთახი' : '1-ზე-1 რეჟიმი';
     socket.emit('next');
-    socket.emit('join-queue', { mode: '1v1' });
+    socket.emit('join-queue', { mode: nextMode });
   } else {
     leaveEverything();
   }
