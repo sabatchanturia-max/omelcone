@@ -14,6 +14,9 @@ const waitingText = document.getElementById('waitingText');
 const waitingSub = document.getElementById('waitingSub');
 const roomTypeBadge = document.getElementById('roomTypeBadge');
 const roomIdDisplay = document.getElementById('roomIdDisplay');
+const chatPanel = document.querySelector('.chat-panel');
+const btnChatToggle = document.getElementById('btnChatToggle');
+const btnChatClose = document.getElementById('btnChatClose');
 
 // State
 let localStream = null;
@@ -358,6 +361,18 @@ document.getElementById('btnNext').onclick = doNext;
 document.getElementById('btnNextBottom').onclick = doNext;
 document.getElementById('btnLeave').onclick = leaveEverything;
 document.getElementById('btnLeaveBottom').onclick = leaveEverything;
+
+function setChatOpen(isOpen) {
+  if (!chatPanel) return;
+  chatPanel.classList.toggle('open', isOpen);
+  if (btnChatToggle) {
+    btnChatToggle.classList.toggle('active', isOpen);
+    btnChatToggle.title = isOpen ? 'ჩატის დახურვა' : 'ჩატის გახსნა';
+  }
+}
+
+btnChatToggle?.addEventListener('click', () => setChatOpen(!chatPanel.classList.contains('open')));
+btnChatClose?.addEventListener('click', () => setChatOpen(false));
 
 document.addEventListener('click', () => {
   document.querySelectorAll('.video-tile.remote video').forEach(video => {
