@@ -292,6 +292,9 @@ io.on('connection', (socket) => {
 
   // WebRTC signaling
   socket.on('signal', ({ to, data }) => {
+    const senderRoomId = socketToRoom.get(socket.id);
+    const targetRoomId = socketToRoom.get(to);
+    if (!senderRoomId || senderRoomId !== targetRoomId || !data || typeof data.type !== 'string') return;
     io.to(to).emit('signal', { from: socket.id, data });
   });
 
