@@ -17,6 +17,8 @@ const roomIdDisplay = document.getElementById('roomIdDisplay');
 const chatPanel = document.querySelector('.chat-panel');
 const btnChatToggle = document.getElementById('btnChatToggle');
 const btnChatClose = document.getElementById('btnChatClose');
+const btnWatchLinkToggle = document.getElementById('btnWatchLinkToggle');
+const btnWatchLinkClose = document.getElementById('btnWatchLinkClose');
 const watchStage = document.getElementById('watchStage');
 const youtubeUrlInput = document.getElementById('youtubeUrlInput');
 const youtubePlayerEl = document.getElementById('youtubePlayer');
@@ -69,7 +71,14 @@ async function ensureYoutubePlayer(videoId) {
 
 function setWatchMode(enabled) {
   if (watchStage) watchStage.classList.toggle('active', enabled);
+  chatRoom.classList.toggle('watch-mode', enabled);
+  if (!enabled) setWatchLinkOpen(false);
   if (enabled) roomTypeBadge.textContent = 'Watch Together';
+}
+
+function setWatchLinkOpen(isOpen) {
+  const urlRow = document.querySelector('.watch-url-row');
+  if (urlRow) urlRow.classList.toggle('open', isOpen);
 }
 
 function stopYoutubePlayback() {
@@ -476,6 +485,23 @@ document.getElementById('btnWatchSync').onclick = () => {
   if (!youtubePlayer) return;
   sendWatchControl('sync', { time: youtubePlayer.getCurrentTime(), playing: true });
 };
+document.getElementById('watchVolume').oninput = (event) => {
+  if (!youtubePlayer) return;
+  youtubePlayer.setVolume(Number(event.target.value));
+  youtubePlayer.unMute();
+};
+document.getElementById('btnWatchMute').onclick = () => {
+  if (!youtubePlayer) return;
+  if (youtubePlayer.isMuted()) {
+    youtubePlayer.unMute();
+    document.getElementById('btnWatchMute').innerHTML = '<i class="fas fa-volume-high"></i>';
+  } else {
+    youtubePlayer.mute();
+    document.getElementById('btnWatchMute').innerHTML = '<i class="fas fa-volume-xmark"></i>';
+  }
+};
+btnWatchLinkToggle?.addEventListener('click', () => setWatchLinkOpen(true));
+btnWatchLinkClose?.addEventListener('click', () => setWatchLinkOpen(false));
 
 function setChatOpen(isOpen) {
   if (!chatPanel) return;
