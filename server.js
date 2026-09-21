@@ -53,7 +53,11 @@ async function getXirsysIceServers() {
   if (!response.ok) throw new Error(`Xirsys returned HTTP ${response.status}`);
   const payload = await response.json();
   const iceServers = payload.v?.iceServers || payload.iceServers || payload.v || payload;
-  return Array.isArray(iceServers) ? iceServers : [iceServers];
+  const normalized = Array.isArray(iceServers) ? iceServers : [iceServers];
+  if (!normalized.every(server => server && typeof server === 'object' && server.urls)) {
+    throw new Error('Xirsys returned an invalid ICE server response');
+  }
+  return normalized;
 }
 
 app.get('/ice-servers', async (req, res) => {
