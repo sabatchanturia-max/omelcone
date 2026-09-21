@@ -295,12 +295,6 @@ body {
   display: flex;
   gap: 0.5rem;
 }
-.watch-only {
-  display: none;
-}
-.watch-mode .watch-only {
-  display: flex;
-}
 .chat-close {
   display: none;
 }
@@ -374,10 +368,6 @@ body {
 .watch-controls .icon-btn {
   width: 36px;
   height: 36px;
-}
-.watch-volume {
-  width: 72px;
-  accent-color: var(--primary);
 }
 .youtube-player {
   width: 100%;
@@ -688,32 +678,6 @@ body {
     align-items: stretch;
     flex-direction: column;
   }
-  .watch-url-row {
-    position: absolute;
-    z-index: 20;
-    top: 58px;
-    left: 50%;
-    width: min(92vw, 390px);
-    padding: 10px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    transform: translateX(-50%) scale(0.96);
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: all 0.2s ease;
-  }
-  .watch-url-row.open {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    transform: translateX(-50%) scale(1);
-  }
-  .watch-link-close {
-    display: inline-flex;
-  }
   .youtube-player {
     height: 170px;
   }
@@ -752,29 +716,10 @@ body {
   .control-btn { width: 42px; height: 42px; font-size: 0.95rem; }
   .control-btn.next-big { width: 48px; height: 48px; }
   .room-header { padding: 0.6rem 0.8rem; }
-  .watch-url-row { flex-direction: column; }
-  .watch-action { min-height: 38px; }
+  .watch-url-row { flex-direction: row; }
+  .watch-action { padding: 0 8px; font-size: 0.8rem; }
   .youtube-player { aspect-ratio: 16 / 9; }
   .main-area:has(.watch-stage.active) {
     grid-template-rows: minmax(0, 1fr) minmax(110px, 31vh);
-  }
-}
-
-.watch-link-close {
-  display: none;
-  width: 36px;
-  min-width: 36px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: transparent;
-  color: var(--text);
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-@media (max-width: 900px) {
-  .watch-link-close {
-    display: inline-flex;
   }
 }
