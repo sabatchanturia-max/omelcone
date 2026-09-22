@@ -52,7 +52,10 @@ async function getXirsysIceServers() {
 
   if (!response.ok) throw new Error(`Xirsys returned HTTP ${response.status}`);
   const payload = await response.json();
-  if (payload.s && payload.s !== 'ok') throw new Error(`Xirsys returned ${payload.s}`);
+  if (payload.s && payload.s !== 'ok') {
+    const detail = typeof payload.v === 'string' ? payload.v : JSON.stringify(payload.v || {});
+    throw new Error(`Xirsys returned ${payload.s}${detail && detail !== '{}' ? `: ${detail.slice(0, 160)}` : ''}`);
+  }
   const iceServers = payload.v?.iceServers || payload.iceServers || payload.v || payload;
   const normalized = Array.isArray(iceServers) ? iceServers : [iceServers];
   if (!normalized.every(server => server && typeof server === 'object' && server.urls)) {
