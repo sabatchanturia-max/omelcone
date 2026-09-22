@@ -41,17 +41,18 @@ const xirsysChannel = process.env.XIRSYS_CHANNEL;
 async function getXirsysIceServers() {
   if (!xirsysIdent || !xirsysSecret || !xirsysChannel) return null;
 
-  const response = await fetch(`${xirsysPath}/_turn/${xirsysChannel}`, {
+  const channel = encodeURIComponent(xirsysChannel);
+  const response = await fetch(`${xirsysPath}/_turn/${channel}?webrtc=1&expire=3600`, {
     method: 'PUT',
     headers: {
       Authorization: `Basic ${Buffer.from(`${xirsysIdent}:${xirsysSecret}`).toString('base64')}`,
       'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ format: 'urls' })
+    }
   });
 
   if (!response.ok) throw new Error(`Xirsys returned HTTP ${response.status}`);
   const payload = await response.json();
+  if (payload.s && payload.s !== 'ok') throw new Error(`Xirsys returned ${payload.s}`);
   const iceServers = payload.v?.iceServers || payload.iceServers || payload.v || payload;
   const normalized = Array.isArray(iceServers) ? iceServers : [iceServers];
   if (!normalized.every(server => server && typeof server === 'object' && server.urls)) {
